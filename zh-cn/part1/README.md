@@ -13,7 +13,7 @@
 
 ## 需求
 
-至少希望你了解基本的 node.js 和 npm，譬如至少了解(require,npm init/install/uninstall)。
+至少希望你了解基本的 node.js 和 npm，譬如至少了解(`require`,`npm init`/`install`/`uninstall`)。
 
 ## 贡献
 
@@ -662,7 +662,7 @@ npm run dev
 
 > HMR 是可选功能，只会影响包含 HMR 代码的模块。举个例子，通过 style-loader 为 style 样式追加补丁。 为了运行追加补丁，style-loader 实现了 HMR 接口；当它通过 HMR 接收到更新，它会使用新的样式替换旧的样式。
 
-但是修改 `index.html` 文件时，服务器不能 hot reload，因为 css 和 .vue 的热加载都是因为相应的 loader 实现了 HMR 接口，所以如果想要修改 index.html 实现 hot load ，则需要装相应的 html-loader
+但是修改 `index.html` 文件时，服务器不能 hot reload，因为 css 和 .vue 的 HMR 都是因为相应的 loader 实现了 HMR 接口，所以如果想要修改 index.html 实现 hot load ，则需要装相应的 html-loader
 
 ```
 npm install -D html-loader
@@ -691,14 +691,6 @@ module: {
 
 这个时候，hot load 才算基本完成，如果以后要加载新的文件，也是一样的道理，装新的 loader 。
 
-#### 开始撰写程序
-
-[范例七](./example7)
-
-大多数的人似乎会慌乱的原因是因为：webpack 事实上需要通过这些取得的进入点来撰写 JavaScript；然而我们现在已经到达了这个教学课程最高潮的部分。
-
-如果你还没准备好：执行 `npm run dev`，以及导到 `http://localhost:8080`。配置 dev server 是不是可以 hot reload。在你每次储存你专桉所编辑的任何一个文件部份时，浏览器将会重新载入来显示你的修改。
-
 #### 提取 css
 
 到目前为止，如果我们运行 npm run build ，你会发现所有的东西都在 bundle.js 里，通常情况下，我们会想把 css 单独拎出来的作为一个文件的，这个时候，就需要另一个插件 extract-text-webpack-plugin，首先
@@ -707,7 +699,7 @@ module: {
 npm install -D extract-text-webpack-plugin@next
 ```
 
-注意`@next`，这是为了兼容 webpack4 ，可能未来不同这样做，然后在 webpack.config.prod.js 文件里，加上几行代码：
+注意`@next`，这是为了兼容 webpack4 ，可能未来不需要这样做，然后在 webpack.config.prod.js 文件里，加上几行代码：
 
 ```javascript
 //...
@@ -731,9 +723,19 @@ plugins: [
     ]
   },
 ```
+
 具体的解释，以及更细致的配置，要去查文档了。
 
-这个时候，再 npm run build 就会发现 css 会被单独打包成一个文件，通过 `link` 标签引入 `html` 了
+这个时候，再 npm run build 就会发现 css 会被单独打包成一个文件，通过 `link` 标签引入 `html` 了。
+
+#### 开始撰写程序
+
+[范例七](./example7)
+
+大多数的人似乎会慌乱的原因是因为：webpack 事实上需要通过这些取得的进入点来撰写 JavaScript；然而我们现在已经到达了这个教学课程最高潮的部分。
+
+如果你还没准备好：执行 `npm run dev`，以及导到 `http://localhost:8080`。配置 dev server 是不是可以 hot reload。在你每次储存你专桉所编辑的任何一个文件部份时，浏览器将会重新载入来显示你的修改。
+
 ## 结论
 
 我希望这些是有帮助的。
