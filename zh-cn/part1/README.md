@@ -86,6 +86,22 @@
 
 注意: -D 等价于 --save-dev
 
+**备注**
+
+由于版本变动，后来的安装，如果有需要其他依赖，npm 安装时一般都会提示，譬如:
+
+```
+npm install -D eslint eslint-config-standard
+```
+
+之后，就会在控制台下方收到：
+
+> npm WARN eslint-config-standard@11.0.0 requires a peer of eslint-plugin-import@>=2.8.0 but none is installed. You must install peer dependencies yourself.
+> npm WARN eslint-config-standard@11.0.0 requires a peer of eslint-plugin-node@>=5.2.1 but none is installed. You must install peer dependencies yourself.
+> ...
+
+这种情况下，只要正常根据提示安装就可以。
+
 ### 命令
 
 如果要执行 webpack：
@@ -739,12 +755,12 @@ plugins: [
 
 我希望这些是有帮助的。
 
-首先 Webpack 最重要的它是一个模块整合工具。它是一个高度模块化的工具，事实上，它并不是被限于在 ES6 和 React。
+首先 Webpack 最重要的它是一个模块整合工具。它是一个高度模块化的工具，事实上，它并不是被限于在 ES6 和 Vue。
 
 现在考虑到：
 
 * Part 2 将解决使用 Webpack 通过 Babel 将 ES6 转换到 ES5。
-* Part 3 将解决使用 Webpack 和 React + Babel。
+* Part 3 将解决使用 Webpack 和 Vue + Babel。
 
 因为这是这常见的例子。
 

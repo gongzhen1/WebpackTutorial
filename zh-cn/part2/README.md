@@ -193,7 +193,7 @@ module: {
     //...
     {
       test: /\.js$/,
-      use: ['babel'],
+      use: ['babel-loader'],
       include: path.join(__dirname, 'src')
     }
     //...
@@ -212,24 +212,6 @@ module: {
 ## 我们完成了？
 
 老实说，我以为这个教学会更长，但看起来我忘记了「加入 babel」这件事实际上非常简单。现在我们可以使用 ES6 语法来更新先前 `index.js` 的代码了：
-
-```javascript
-// index.js
-
-// 接受 hot module reloading
-if (module.hot) {
-  module.hot.accept()
-}
-
-require('./styles.css') // 网页现在有了样式
-const Please = require('pleasejs')
-
-const div = document.getElementById('color')
-const button = document.getElementById('button')
-const changeColor = () => (div.style.backgroundColor = Please.make_color())
-
-button.addEventListener('click', changeColor)
-```
 
 ### Require ES6 的 Module
 
@@ -267,37 +249,28 @@ import Please from 'pleasejs'
 
 ```javascript
 plugins: [
-  new webpack.optimize.UglifyJsPlugin({
-    compressor: {
-      warnings: false
-    }
-  }),
   new webpack.optimize.OccurrenceOrderPlugin(),
   new HtmlWebpackPlugin({
     template: './src/index.html'
   }),
+  new webpack.HotModuleReplacementPlugin(),
   new webpack.DefinePlugin({
     'process.env.NODE_ENV': JSON.stringify('production')
   })
 ]
 ```
 
-现在，假如我们不想要在 production 上执行一些代码，我们可以放入一个 if 条件式：
+这样，我们就可以在 index.js 取到变量`process.env.NODE_ENV`，你可以试试，在 index.js 里加上
+
+```
+console.log(process.env.NODE_ENV)
+```
+
+然后，npm run dev ，会发现控制台上有 production 或者 development。这样就可以在 index.js 通过判断开发环境来选择性的 require。假如我们不想要在 production 上执行一些代码，我们可以放入一个 if 条件式：
 
 ```javascript
 if (process.env.NODE_ENV !== 'production') {
   // not for production
-}
-```
-
-在我们目前的专案中，如果在 production 环境下，我们可以排除 hot reload：
-
-```javascript
-// 在开发环境下接受 hot module reloading
-if (process.env.NODE_ENV !== 'production') {
-  if (module.hot) {
-    module.hot.accept()
-  }
 }
 ```
 
@@ -324,27 +297,31 @@ if (process.env.NODE_ENV !== 'production') {
 }
 ```
 
-当我们介绍 [React Transform HMR](https://github.com/gaearon/react-transform-hmr)，我们将使用这个在 part 3 和 react。
-
 ### 加入 Lint
 
 如果你看过任何关于 Webpack/React 专案的 seed/starter，你可能看过一个文件叫做 `.eslintrc`。如果你不是使用 IDE，而是使用像是 Atom、Sublime、Ecmas、Vim 等等，eslint 提供语法和风格的检查，指出你的错误。此外，即使你正在使用 IDE，它可以提供更多功能，并确保整个专案代码风格统一。
 
 请注意，如果你相要在编辑器内使用它，你需要安装一个套件，例如我使用 Atom [linter-eslint](https://github.com/AtomLinter/linter-eslint)。
 
-如果要减少我们手动撰写配置，我们可以充分的利用继承，使用他人的配置。我喜欢使用基于 [airbnb 的风格指南](https://github.com/airbnb/javascript)配置。
+如果要减少我们手动撰写配置，我们可以充分的利用继承，使用他人的配置。我喜欢使用基于 [standard 的风格指南](https://github.com/standard/eslint-config-standard)配置。
 
-开始之前，我们须安装 eslint 和 airbnb 的配置：
+开始之前，我们须安装 eslint 和 eslint-config-standard 的配置：
 
     npm install -g eslint
-    npm install -D eslint eslint-config-airbnb
+    npm install -D eslint eslint-config-standard
 
-我们的配置看起来像：
+因为 eslint-config-standard 有依赖于 eslint-plugin-import、eslint-plugin-node 、eslint-plugin-promise 、eslint-plugin-standard ，所以我们都要安装:
+
+```
+npm i -D eslint-plugin-import eslint-plugin-node eslint-plugin-promise eslint-plugin-standard
+```
+
+然后，在项目目录下新建 .eslintrc 文件，我们的配置看起来像：
 
 ```javascript
 // .eslintrc
 {
-  "extends": "airbnb/base" //使用 'airbnb/base' ，因为 'airbnb' 是假设使用 react
+  "extends": "standard" //使用 'standard'
 }
 ```
 
@@ -353,7 +330,7 @@ if (process.env.NODE_ENV !== 'production') {
 ```javascript
 // .eslintrc
 {
-  "extends": "airbnb/base",
+  "extends": "standard",
   "rules": {
     "comma-dangle": 0,
     "no-console": 0,
@@ -367,14 +344,16 @@ if (process.env.NODE_ENV !== 'production') {
 
 另外，eslint 内建不支持和分辨 babel 语法，所以我们需要安装两个套件：
 
+```
     npm install -D babel-eslint eslint-plugin-babel
+```
 
 调整我们的配置，再一次的加入 [babel 指定规则](https://github.com/babel/eslint-plugin-babel)：
 
 ```javascript
 // .eslintrc
 {
-  "extends": "airbnb/base",
+  "extends": "standard",
   "parser": "babel-eslint",
   "rules": {
     "comma-dangle": 0,
@@ -383,11 +362,7 @@ if (process.env.NODE_ENV !== 'production') {
     "func-names": 0,
     "space-before-function-paren": 0,
     "no-multi-spaces": 0,
-    "babel/generator-star-spacing": 1,
-    "babel/new-cap": 1,
-    "babel/object-shorthand": 1,
-    "babel/arrow-parens": 1,
-    "babel/no-await-in-loop": 1
+    "babel/new-cap": 1
   },
   "plugins": [
     "babel"
@@ -412,13 +387,11 @@ if (process.env.NODE_ENV !== 'production') {
 
 我已经把所有这一切的最终结果放入到[范例一](https://github.com/neighborhood999/WebpackTutorial/tree/master/part2/example1)。如果你仍然有不理解的地方，可以在 issue 提出你的问题。
 
-所以现在我们可以轻鬆的撰写 ES6 代码，此外，也让我们了解到如何撰写配置 :tada:！
-
-然而，你有能力从头开始撰写它，并不表示你一定要这么做。为了方便，[我有建立一个 repository](https://github.com/AriaFallah/minimal-babel-starter) 让你 clone 下来开始，这是根据这份教学建立的基本文件。
+所以现在我们可以轻松的撰写 ES6 代码，此外，也让我们了解到如何撰写配置 :tada:！
 
 对未来的期望：
 
-* Part 3 将会加入 React
+* Part 3 将会加入 Vue
 * Part 4 将会涵盖更多进阶的 webpack 功能
 
 感谢你的阅读！
