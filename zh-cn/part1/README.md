@@ -567,6 +567,8 @@ module.exports = {
 
 2.  dev 配置需要对 dev server 做必要的配置，你可以到[这里](https://webpack.github.io/docs/webpack-dev-server.html)了解更多。
 
+3.  新增了 HotModuleReplacementPlugin 插件：模块热替换(HMR - Hot Module Replacement)功能会在应用程序运行过程中替换、添加或删除模块，而无需重新加载整个页面。
+
 总结：
 
 * entry: 两个新的进入点将服务器连结到浏览器，方便 HMR。
@@ -654,13 +656,13 @@ npm run dev
 
 你现在可以通过 `npm run dev`，并导到 `http://localhost:8080` 看到你的网站。
 
-#### 备注
+**模块热替换（HMR）**
 
-到目前为止，修改 `index.html` 文件时，服务器不能 hot reload，如果修改 .src/style.css 文件，会有作用，包括，如果装了 vue-loader 修改 .vue 文件，也会有 hot load 效果，根据[文档](https://doc.webpack-china.org/concepts/hot-module-replacement#%E5%9C%A8%E6%A8%A1%E5%9D%97%E4%B8%AD)提示：
+到目前为止，如果修改 .src/style.css 文件，页面会自动应用新的样式，包括，如果装了 vue-loader 修改 .vue 文件，也会有 hot load 效果，根据[文档](https://doc.webpack-china.org/concepts/hot-module-replacement#%E5%9C%A8%E6%A8%A1%E5%9D%97%E4%B8%AD)提示：
 
 > HMR 是可选功能，只会影响包含 HMR 代码的模块。举个例子，通过 style-loader 为 style 样式追加补丁。 为了运行追加补丁，style-loader 实现了 HMR 接口；当它通过 HMR 接收到更新，它会使用新的样式替换旧的样式。
 
-所以 css 和 .vue 的热加载都是因为相应的 loader 实现了 HMR 接口，所以如果想要修改 index.html 实现 hot load ，则需要装相应的 html-loader
+但是修改 `index.html` 文件时，服务器不能 hot reload，因为 css 和 .vue 的热加载都是因为相应的 loader 实现了 HMR 接口，所以如果想要修改 index.html 实现 hot load ，则需要装相应的 html-loader
 
 ```
 npm install -D html-loader
@@ -697,10 +699,41 @@ module: {
 
 如果你还没准备好：执行 `npm run dev`，以及导到 `http://localhost:8080`。配置 dev server 是不是可以 hot reload。在你每次储存你专桉所编辑的任何一个文件部份时，浏览器将会重新载入来显示你的修改。
 
-#### 备注
+#### 提取 css
 
-你可能已经注意到在你的 css 被使用之前有些 delay，或许事实上你讨厌将你的 css 放入到 JavaScript 文件中。我留了另一个范例：[css-extract](./css-extract)，描述如何将你的 CSS 放在不同的文件。
+到目前为止，如果我们运行 npm run build ，你会发现所有的东西都在 bundle.js 里，通常情况下，我们会想把 css 单独拎出来的作为一个文件的，这个时候，就需要另一个插件 extract-text-webpack-plugin，首先
 
+```
+npm install -D extract-text-webpack-plugin@next
+```
+
+注意`@next`，这是为了兼容 webpack4 ，可能未来不同这样做，然后在 webpack.config.prod.js 文件里，加上几行代码：
+
+```javascript
+//...
+const extractTextWebpackPlugin = require('extract-text-webpack-plugin')
+//...
+plugins: [
+  //...
+  new extractTextWebpackPlugin('styles.css')
+]
+//...
+ module: {
+    rules: [
+      //...
+      {
+        test: /\.css$/,
+        use: extractTextWebpackPlugin.extract({
+          fallback: 'style-loader',
+          use: ['css-loader']
+        })
+      }
+    ]
+  },
+```
+具体的解释，以及更细致的配置，要去查文档了。
+
+这个时候，再 npm run build 就会发现 css 会被单独打包成一个文件，通过 `link` 标签引入 `html` 了
 ## 结论
 
 我希望这些是有帮助的。
