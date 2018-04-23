@@ -1,4 +1,6 @@
-# Webpack4 初学者教程 Part 1 - Webpack 简介 :zap:
+# Webpack4 初学者教程
+
+# Part 1 - Webpack 简介 :zap:
 
 对于像我这样的人来说，第一次接触到 webpack 是像是这些 repository：
 
@@ -652,7 +654,40 @@ npm run dev
 
 你现在可以通过 `npm run dev`，并导到 `http://localhost:8080` 看到你的网站。
 
-**备注：** 当我正在测试这个部份时，我了解到，当我修改 `index.html` 文件时，服务器不能 hot reload。解决这个问题的方法在 [html-reload](./html-reload)。这里涵盖了一些 webpack 配置选项的有用信息，我推荐你可以看一下，但是我把它分开了，因为我觉得会因为这个不太重要的原因，这会延长这个教学课程。
+#### 备注
+
+到目前为止，修改 `index.html` 文件时，服务器不能 hot reload，如果修改 .src/style.css 文件，会有作用，包括，如果装了 vue-loader 修改 .vue 文件，也会有 hot load 效果，根据[文档](https://doc.webpack-china.org/concepts/hot-module-replacement#%E5%9C%A8%E6%A8%A1%E5%9D%97%E4%B8%AD)提示：
+
+> HMR 是可选功能，只会影响包含 HMR 代码的模块。举个例子，通过 style-loader 为 style 样式追加补丁。 为了运行追加补丁，style-loader 实现了 HMR 接口；当它通过 HMR 接收到更新，它会使用新的样式替换旧的样式。
+
+所以 css 和 .vue 的热加载都是因为相应的 loader 实现了 HMR 接口，所以如果想要修改 index.html 实现 hot load ，则需要装相应的 html-loader
+
+```
+npm install -D html-loader
+```
+
+然后 index.js 里需要加上一行：
+
+```javascript
+require('./index.html')
+```
+
+然后 webpack.config.dev.js 里 module.rules 也要加上：
+
+```javascript
+module: {
+  rules: [
+    //...
+    {
+      test: /\.html$/,
+      use: ['html-loader']
+    }
+    //...
+  ]
+}
+```
+
+这个时候，hot load 才算基本完成，如果以后要加载新的文件，也是一样的道理，装新的 loader 。
 
 #### 开始撰写程序
 
@@ -662,7 +697,9 @@ npm run dev
 
 如果你还没准备好：执行 `npm run dev`，以及导到 `http://localhost:8080`。配置 dev server 是不是可以 hot reload。在你每次储存你专桉所编辑的任何一个文件部份时，浏览器将会重新载入来显示你的修改。
 
-**备注：** 你可能已经注意到在你的 css 被使用之前有些 delay，或许事实上你讨厌将你的 css 放入到 JavaScript 文件中。我留了另一个范例：[css-extract](./css-extract)，描述如何将你的 CSS 放在不同的文件。
+#### 备注
+
+你可能已经注意到在你的 css 被使用之前有些 delay，或许事实上你讨厌将你的 css 放入到 JavaScript 文件中。我留了另一个范例：[css-extract](./css-extract)，描述如何将你的 CSS 放在不同的文件。
 
 ## 结论
 
@@ -678,3 +715,7 @@ npm run dev
 因为这是这常见的例子。
 
 ## 反思
+
+```
+
+```
