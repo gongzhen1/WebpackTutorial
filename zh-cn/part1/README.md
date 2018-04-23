@@ -571,7 +571,6 @@ module.exports = {
 
 总结：
 
-* entry: 两个新的进入点将服务器连结到浏览器，方便 HMR。
 * devServer
   * contentBase: 服务的文件来自哪裡。
   * port: 端口。

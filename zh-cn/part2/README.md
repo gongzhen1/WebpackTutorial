@@ -8,8 +8,8 @@
 
 ## 需求
 
-1. 如果你还没有准备好，请先阅读 [part 1][2]
-2. 有关 ES6 的概述，[es6-cheatsheet](https://github.com/DrkSephy/es6-cheatsheet) 是一个很棒的资源。
+1.  如果你还没有准备好，请先阅读 [part 1][2]
+2.  有关 ES6 的概述，[es6-cheatsheet](https://github.com/DrkSephy/es6-cheatsheet) 是一个很棒的资源。
 
 ## 贡献
 
@@ -29,27 +29,26 @@
   * [加入 Lint](#加入-lint)
 * [结论](#结论)
 
-
 ## Babel
 
 如果你想要有更深入的说明，和更细微的配置 babel，请参考这个[手册][1]。我在这里说明的是一些基本的配置。
 
 ### Babel 是做什么用的？
 
-简单来说，babel 让你可以更完整的使用 JavaScript 的 ES6 feature，因为目前大部分的浏览器和环境都不支持，所以将它转换成 ES5，让它可以更广泛的被支持。
+简单来说，babel 让你可以更完整的使用 JavaScript 的 ES6 feature，因为目前浏览器支持有限，所以将它转换成 ES5，让它可以更广泛的支持。
 
 这个 ES6 的代码，目前*只*有最新的浏览器才支持。
 
 ```javascript
-const square = n => n * n;
+const square = n => n * n
 ```
 
 它会被转成像是：
 
 ```javascript
 var square = function square(n) {
-  return n * n;
-};
+  return n * n
+}
 ```
 
 让你可以执行在任何支持 JavaScript 的地方。
@@ -64,26 +63,19 @@ var square = function square(n) {
 
 ```javascript
 {
-  "presets": ["es2015", "stage-2"]
+  "presets": ["env"]
 }
 ```
 
-你只需要指定一个 `presets` 选项，下面是描述的摘录：
+你只需要指定一个 `presets` 选项，建议选择 `env` ，
 
-> JavaScript 也有一些可能成为标准的提案，正在 TC39（ECMAScript 标准背后的委员会）的程序中。
+> babel-preset-env behaves exactly the same as babel-preset-latest (or babel-preset-es2015, babel-preset-es2016, and babel-preset-es2017 together).
 
-> 这个程序被分为 5 个 statge（0-4）。如果提案获得更多的同意，通过各个 stage，就很容易被接受纳入标准中，最后在 stage 4 中被接受纳入标准。
+如果要使用到这些 presets，我们需要安装它们：
 
-> 注意，这里没有 stage-4 的 preset，它只是作为的 `es2015` 的 preset。
-> 以上。
-
-总结以上，`presets` 就是一些打包了 `plugins` 的 bundles，它们将一些功能加入到你在撰写的代码。`es2015` 中的功能，肯定会出现在 ES6 的官方版本，而 stages 0-3 的 presets ，则是未来 JavaScript 规范的一些提案，现在还在草案阶段。如果选择的 stage 越低，你使用的 features 之后将不支持的风险越高。
-
-从我的经验来说，我至少需要 `stage-2`，让我可以使用一个叫作 [object spread](https://github.com/sebmarkbage/ecmascript-rest-spread) 的东西。你可以在[这里](https://github.com/tc39/ecma262)看看其他的提案，然后决定你要使用哪个 stage。
-
-总之，如果要使用到这些 presets，我们需要安装它们：
-
-    npm install --save-dev babel-preset-es2015 babel-preset-stage-2
+```
+    npm install -D babel-preset-env
+```
 
 而实际上你全部需要做的事情就只有这个。
 
@@ -95,96 +87,117 @@ var square = function square(n) {
 
 ```javascript
 // webpack.config.dev.js
-var path = require('path')
-var webpack = require('webpack')
-var HtmlWebpackPlugin = require('html-webpack-plugin')
+const path = require('path')
+const webpack = require('webpack')
+const htmlWebpackPlugin = require('html-webpack-plugin')
 
-module.exports = {
-  devtool: 'cheap-eval-source-map',
-  entry: [
-    'webpack-dev-server/client?http://localhost:8080',
-    'webpack/hot/dev-server',
-    './src/index'
-  ],
+const config = {
+  mode: 'development',
+  entry: ['./src/index.js'],
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js'
   },
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-    new HtmlWebpackPlugin({
+    new webpack.optimize.OccurrenceOrderPlugin(),
+    new htmlWebpackPlugin({
       template: './src/index.html'
-    })
+    }),
+    // 和 hot: true 一起用，否则 css 会加载失败，开发环境
+    new webpack.HotModuleReplacementPlugin()
   ],
   module: {
-    loaders: [{
-      test: /\.css$/,
-      loaders: ['style', 'css']
-    }]
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
+      {
+        test: /\.html$/,
+        use: ['html-loader']
+      }
+    ]
   },
   devServer: {
-    contentBase: './dist',
-    hot: true
-  }
+    port: 8080,
+    hot: true,
+    host: '0.0.0.0'
+  },
+  devtool: 'cheap-eval-source-map'
 }
+
+module.exports = config
 ```
 
 和
 
 ```javascript
 // webpack.config.prod.js
-var path = require('path')
-var webpack = require('webpack')
-var HtmlWebpackPlugin = require('html-webpack-plugin')
+const path = require('path')
+const webpack = require('webpack')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const htmlWebpackPlugin = require('html-webpack-plugin')
+const extractTextWebpackPlugin = require('extract-text-webpack-plugin')
 
-module.exports = {
-  devtool: 'source-map',
-  entry: ['./src/index'],
+const config = {
+  mode: 'production',
+  entry: ['./src/index.js'],
   output: {
     path: path.join(__dirname, 'dist'),
     filename: 'bundle.js'
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      compressor: {
-        warnings: false,
-      },
-    }),
     new webpack.optimize.OccurrenceOrderPlugin(),
-    new HtmlWebpackPlugin({
+    new htmlWebpackPlugin({
       template: './src/index.html'
-    })
+    }),
+    new extractTextWebpackPlugin('styles.css')
   ],
   module: {
-    loaders: [{
-      test: /\.css$/,
-      loaders: ['style', 'css']
-    }]
-  }
+    rules: [
+      {
+        test: /\.css$/,
+        use: extractTextWebpackPlugin.extract({
+          fallback: 'style-loader',
+          use: ['css-loader']
+        })
+      }
+    ]
+  },
+  devtool: 'source-map'
 }
+config.optimization = {
+  minimizer: [
+    new UglifyJsPlugin({
+      uglifyOptions: {
+        compress: true
+      }
+    })
+  ]
+}
+module.exports = config
 ```
 
 ### 一个新的 Loader
 
 如果要将我们的代码转换成 ES5，我们需要通过执行一个新的 loader 叫作 `babel-loader`，它和 `babel-core` 有依赖关係。这个 loader 使用了我们的 `.babelrc` 配置来了解和转换我们的代码。
 
-    npm install --save-dev babel-loader babel-core
+    npm install -D babel-loader babel-core
 
 我们在 dev 和 prod 这两个配置中加入：
 
 ```javascript
-// 为了节省篇幅我只显示「loaders」的部分。
-
 // webpack.config.dev.js 和 webpack.config.prod.js
 module: {
-  loaders: [{
-    test: /\.css$/,
-    loaders: ['style', 'css']
-  }, {
-    test: /\.js$/,
-    loaders: ['babel'],
-    include: path.join(__dirname, 'src')
-  }]
+  rules: [
+    //...
+    {
+      test: /\.js$/,
+      use: ['babel'],
+      include: path.join(__dirname, 'src')
+    }
+    //...
+  ]
 }
 ```
 
@@ -213,7 +226,7 @@ const Please = require('pleasejs')
 
 const div = document.getElementById('color')
 const button = document.getElementById('button')
-const changeColor = () => div.style.backgroundColor = Please.make_color()
+const changeColor = () => (div.style.backgroundColor = Please.make_color())
 
 button.addEventListener('click', changeColor)
 ```
@@ -256,8 +269,8 @@ import Please from 'pleasejs'
 plugins: [
   new webpack.optimize.UglifyJsPlugin({
     compressor: {
-      warnings: false,
-    },
+      warnings: false
+    }
   }),
   new webpack.optimize.OccurrenceOrderPlugin(),
   new HtmlWebpackPlugin({
@@ -294,8 +307,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 [根据手册][1]
 
-> 「目前环境」是使用 process.env.BABEL_ENV。当找不到 BABEL_ENV 时，
-它会退回去找 NODE_ENV，如果也找不到 NODE_ENV，目前环境将设为预设值 "development"。
+> 「目前环境」是使用 process.env.BABEL_ENV。当找不到 BABEL_ENV 时，它会退回去找 NODE_ENV，如果也找不到 NODE_ENV，目前环境将设为预设值 "development"。
 
 这个意思说 babel 环境会 match 到我们的 webpack 环境。
 
@@ -314,7 +326,6 @@ if (process.env.NODE_ENV !== 'production') {
 
 当我们介绍 [React Transform HMR](https://github.com/gaearon/react-transform-hmr)，我们将使用这个在 part 3 和 react。
 
-
 ### 加入 Lint
 
 如果你看过任何关于 Webpack/React 专案的 seed/starter，你可能看过一个文件叫做 `.eslintrc`。如果你不是使用 IDE，而是使用像是 Atom、Sublime、Ecmas、Vim 等等，eslint 提供语法和风格的检查，指出你的错误。此外，即使你正在使用 IDE，它可以提供更多功能，并确保整个专案代码风格统一。
@@ -326,7 +337,7 @@ if (process.env.NODE_ENV !== 'production') {
 开始之前，我们须安装 eslint 和 airbnb 的配置：
 
     npm install -g eslint
-    npm install --save-dev eslint eslint-config-airbnb
+    npm install -D eslint eslint-config-airbnb
 
 我们的配置看起来像：
 
@@ -356,7 +367,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 另外，eslint 内建不支持和分辨 babel 语法，所以我们需要安装两个套件：
 
-    npm install --save-dev babel-eslint eslint-plugin-babel
+    npm install -D babel-eslint eslint-plugin-babel
 
 调整我们的配置，再一次的加入 [babel 指定规则](https://github.com/babel/eslint-plugin-babel)：
 
